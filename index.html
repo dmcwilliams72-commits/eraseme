@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Home Inventory Tracker</title>
+  <style>
+    :root {
+      --bg: #f7f2ea;
+      --card: #ffffff;
+      --text: #2f2a24;
+      --muted: #786f66;
+      --accent: #7f9f7a;
+      --accent-dark: #557452;
+      --danger: #c75b5b;
+      --border: #ded4c8;
+      --shadow: 0 10px 25px rgba(0,0,0,.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    header {
+      padding: 24px 18px;
+      background: linear-gradient(135deg, #7f9f7a, #d8c2a8);
+      color: white;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0 0 8px;
+      font-size: 1.8rem;
+    }
+
+    header p {
+      margin: 0;
+      opacity: .95;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 18px;
+    }
+
+    .top-actions, .form-card, .section, .item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .top-actions {
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    input, select, button, textarea {
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      font-size: 1rem;
+      font-family: inherit;
+    }
+
+    button {
+      border: none;
+      background: var(--accent);
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover { background: var(--accent-dark); }
+
+    .secondary {
+      background: #ddd1c3;
+      color: var(--text);
+    }
+
+    .secondary:hover { background: #cbbcac; }
+
+    .danger {
+      background: var(--danger);
+    }
+
+    .danger:hover {
+      background: #a94444;
+    }
+
+    .form-card {
+      padding: 16px;
+      margin-bottom: 18px;
+    }
+
+    .form-card h2 {
+      margin-top: 0;
+      font-size: 1.25rem;
+    }
+
+    .grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    @media (min-width: 720px) {
+      .grid-2 { grid-template-columns: repeat(2, 1fr); }
+      .grid-3 { grid-template-columns: repeat(3, 1fr); }
+      .top-actions { grid-template-columns: 2fr 1fr 1fr; align-items: center; }
+    }
+
+    .inventory {
+      display: grid;
+      gap: 16px;
+    }
+
+    details.section {
+      padding: 12px 14px;
+    }
+
+    summary {
+      cursor: pointer;
+      font-size: 1.2rem;
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      list-style: none;
+    }
+
+    summary::-webkit-details-marker { display: none; }
+
+    .count {
+      font-size: .85rem;
+      color: white;
+      background: var(--accent);
+      padding: 5px 10px;
+      border-radius: 999px;
+    }
+
+    .subsections {
+      display: grid;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .subsection {
+      border: 1px dashed var(--border);
+      border-radius: 14px;
+      padding: 12px;
+      background: #fffaf4;
+    }
+
+    .subsection h3 {
+      margin: 0 0 10px;
+      font-size: 1.05rem;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .item-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .item {
+      padding: 12px;
+      box-shadow: none;
+      display: grid;
+      gap: 8px;
+    }
+
+    .item strong {
+      font-size: 1.05rem;
+    }
+
+    .item-meta {
+      color: var(--muted);
+      font-size: .92rem;
+      line-height: 1.35;
+    }
+
+    .item-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .empty {
+      color: var(--muted);
+      font-style: italic;
+      padding: 8px 0;
+    }
+
+    .small-btn {
+      padding: 9px;
+      font-size: .9rem;
+    }
+
+    .footer-tools {
+      display: grid;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    @media (min-width: 720px) {
+      .footer-tools { grid-template-columns: repeat(3, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Home Inventory Tracker</h1>
+    <p>Track what you have stocked in your kitchen, bathroom, bedroom, storage, and more.</p>
+  </header>
+
+  <main>
+    <section class="top-actions">
+      <input id="searchInput" type="search" placeholder="Search items, notes, locations..." />
+      <button class="secondary" onclick="addCustomSection()">+ Add Section</button>
+      <button class="secondary" onclick="addCustomSubsection()">+ Add Subsection</button>
+    </section>
+
+    <section class="form-card">
+      <h2>Add or Update Item</h2>
+      <form id="itemForm" class="grid">
+        <div class="grid grid-3">
+          <input id="itemName" placeholder="Item name, ex: rice, soap, eggs" required />
+          <input id="quantity" placeholder="Quantity, ex: 2 boxes" />
+          <input id="brand" placeholder="Brand / type, optional" />
+        </div>
+
+        <div class="grid grid-3">
+          <select id="sectionSelect"></select>
+          <select id="subsectionSelect"></select>
+          <input id="lowStock" placeholder="Low stock reminder, ex: buy at 1 left" />
+        </div>
+
+        <textarea id="notes" rows="2" placeholder="Notes, expiration date, size, where you bought it, etc."></textarea>
+
+        <button type="submit">Save Item</button>
+      </form>
+    </section>
+
+    <section id="inventory" class="inventory"></section>
+
+    <section class="footer-tools">
+      <button class="secondary" onclick="exportInventory()">Export Backup</button>
+      <button class="secondary" onclick="document.getElementById('importFile').click()">Import Backup</button>
+      <button class="danger" onclick="clearInventory()">Clear All</button>
+      <input id="importFile" type="file" accept="application/json" style="display:none" onchange="importInventory(event)" />
+    </section>
+  </main>
+
+  <script>
+    const STORAGE_KEY = "homeInventoryTracker_v1";
+
+    const defaultData = {
+      sections: {
+        "Kitchen": ["Pantry", "Cabinets", "Fridge"],
+        "Bathroom": ["Toiletries", "Cleaning", "Medicine"],
+        "Laundry": ["Detergent", "Supplies"],
+        "Bedroom": ["Closet", "Vanity", "Storage"]
+      },
+      items: []
+    };
+
+    let data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultData;
+    let editingId = null;
+
+    const sectionSelect = document.getElementById("sectionSelect");
+    const subsectionSelect = document.getElementById("subsectionSelect");
+    const inventoryEl = document.getElementById("inventory");
+    const searchInput = document.getElementById("searchInput");
+
+    function saveData() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    function generateId() {
+      return Date.now().toString(36) + Math.random().toString(36).slice(2);
+    }
+
+    function refreshDropdowns() {
+      sectionSelect.innerHTML = "";
+      Object.keys(data.sections).forEach(section => {
+        const option = document.createElement("option");
+        option.value = section;
+        option.textContent = section;
+        sectionSelect.appendChild(option);
+      });
+      refreshSubsections();
+    }
+
+    function refreshSubsections() {
+      const section = sectionSelect.value;
+      subsectionSelect.innerHTML = "";
+      (data.sections[section] || []).forEach(sub => {
+        const option = document.createElement("option");
+        option.value = sub;
+        option.textContent = sub;
+        subsectionSelect.appendChild(option);
+      });
+    }
+
+    sectionSelect.addEventListener("change", refreshSubsections);
+    searchInput.addEventListener("input", renderInventory);
+
+    document.getElementById("itemForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const item = {
+        id: editingId || generateId(),
+        name: document.getElementById("itemName").value.trim(),
+        quantity: document.getElementById("quantity").value.trim(),
+        brand: document.getElementById("brand").value.trim(),
+        section: sectionSelect.value,
+        subsection: subsectionSelect.value,
+        lowStock: document.getElementById("lowStock").value.trim(),
+        notes: document.getElementById("notes").value.trim(),
+        updated: new Date().toLocaleDateString()
+      };
+
+      if (editingId) {
+        data.items = data.items.map(existing => existing.id === editingId ? item : existing);
+        editingId = null;
+      } else {
+        data.items.push(item);
+      }
+
+      saveData();
+      this.reset();
+      refreshDropdowns();
+      renderInventory();
+    });
+
+    function renderInventory() {
+      const search = searchInput.value.toLowerCase();
+      inventoryEl.innerHTML = "";
+
+      Object.entries(data.sections).forEach(([section, subsections]) => {
+        const sectionItems = data.items.filter(item => item.section === section && matchesSearch(item, search));
+        const details = document.createElement("details");
+        details.className = "section";
+        details.open = section === "Kitchen" || search.length > 0;
+
+        details.innerHTML = `
+          <summary>
+            <span>${section}</span>
+            <span class="count">${sectionItems.length} item${sectionItems.length !== 1 ? "s" : ""}</span>
+          </summary>
+          <div class="subsections"></div>
+        `;
+
+        const subsectionContainer = details.querySelector(".subsections");
+
+        subsections.forEach(sub => {
+          const subItems = sectionItems.filter(item => item.subsection === sub);
+          const subDiv = document.createElement("div");
+          subDiv.className = "subsection";
+          subDiv.innerHTML = `<h3><span>${sub}</span><span>${subItems.length}</span></h3>`;
+
+          const list = document.createElement("div");
+          list.className = "item-list";
+
+          if (subItems.length === 0) {
+            list.innerHTML = `<div class="empty">No items added yet.</div>`;
+          } else {
+            subItems.forEach(item => list.appendChild(createItemCard(item)));
+          }
+
+          subDiv.appendChild(list);
+          subsectionContainer.appendChild(subDiv);
+        });
+
+        inventoryEl.appendChild(details);
+      });
+    }
+
+    function matchesSearch(item, search) {
+      if (!search) return true;
+      return [item.name, item.quantity, item.brand, item.section, item.subsection, item.lowStock, item.notes]
+        .join(" ")
+        .toLowerCase()
+        .includes(search);
+    }
+
+    function createItemCard(item) {
+      const card = document.createElement("div");
+      card.className = "item";
+      card.innerHTML = `
+        <strong>${escapeHTML(item.name)}</strong>
+        <div class="item-meta">
+          ${item.quantity ? `<div><b>Quantity:</b> ${escapeHTML(item.quantity)}</div>` : ""}
+          ${item.brand ? `<div><b>Brand/Type:</b> ${escapeHTML(item.brand)}</div>` : ""}
+          ${item.lowStock ? `<div><b>Low Stock:</b> ${escapeHTML(item.lowStock)}</div>` : ""}
+          ${item.notes ? `<div><b>Notes:</b> ${escapeHTML(item.notes)}</div>` : ""}
+          <div><b>Updated:</b> ${escapeHTML(item.updated)}</div>
+        </div>
+        <div class="item-actions">
+          <button class="small-btn secondary" onclick="editItem('${item.id}')">Edit</button>
+          <button class="small-btn danger" onclick="deleteItem('${item.id}')">Delete</button>
+        </div>
+      `;
+      return card;
+    }
+
+    function editItem(id) {
+      const item = data.items.find(i => i.id === id);
+      if (!item) return;
+
+      editingId = id;
+      document.getElementById("itemName").value = item.name;
+      document.getElementById("quantity").value = item.quantity;
+      document.getElementById("brand").value = item.brand;
+      sectionSelect.value = item.section;
+      refreshSubsections();
+      subsectionSelect.value = item.subsection;
+      document.getElementById("lowStock").value = item.lowStock;
+      document.getElementById("notes").value = item.notes;
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function deleteItem(id) {
+      if (!confirm("Delete this item?")) return;
+      data.items = data.items.filter(item => item.id !== id);
+      saveData();
+      renderInventory();
+    }
+
+    function addCustomSection() {
+      const name = prompt("Enter new section name, ex: Garage, Office, Linen Closet");
+      if (!name) return;
+      const clean = name.trim();
+      if (!clean) return;
+      if (!data.sections[clean]) data.sections[clean] = ["General"];
+      saveData();
+      refreshDropdowns();
+      renderInventory();
+    }
+
+    function addCustomSubsection() {
+      const section = prompt("Which section should this subsection go under?", sectionSelect.value || "Kitchen");
+      if (!section) return;
+      const cleanSection = section.trim();
+      if (!data.sections[cleanSection]) data.sections[cleanSection] = [];
+
+      const sub = prompt("Enter new subsection name, ex: Freezer, Snacks, Hair Products");
+      if (!sub) return;
+      const cleanSub = sub.trim();
+      if (!cleanSub) return;
+
+      if (!data.sections[cleanSection].includes(cleanSub)) {
+        data.sections[cleanSection].push(cleanSub);
+      }
+
+      saveData();
+      refreshDropdowns();
+      sectionSelect.value = cleanSection;
+      refreshSubsections();
+      renderInventory();
+    }
+
+    function exportInventory() {
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "home-inventory-backup.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function importInventory(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (!imported.sections || !imported.items) throw new Error();
+          data = imported;
+          saveData();
+          refreshDropdowns();
+          renderInventory();
+          alert("Inventory imported successfully.");
+        } catch {
+          alert("This file could not be imported.");
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function clearInventory() {
+      if (!confirm("Clear your entire inventory? This cannot be undone unless you exported a backup.")) return;
+      data = JSON.parse(JSON.stringify(defaultData));
+      saveData();
+      refreshDropdowns();
+      renderInventory();
+    }
+
+    function escapeHTML(str) {
+      return String(str).replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      }[char]));
+    }
+
+    refreshDropdowns();
+    renderInventory();
+  </script>
+</body>
+</html>
